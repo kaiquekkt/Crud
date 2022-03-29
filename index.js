@@ -1,114 +1,114 @@
-
-
-var express = require("express");
-var aplicacao = express();
+let express = require("express");
+let app = express();
 const cookieParser = require("cookie-parser");
 const { json } = require("express");
-aplicacao.use(cookieParser());
-//var usuario = [ {"id":"","nome":"","endereco":"","email":""}];
-var usuario = [];
-
-
-
+app.use(cookieParser());
+let users = [];
+bodyParser = require('body-parser').json();
 
 //API de conexao do metodo GET
-aplicacao.get('/', function(req, res) {
+app.get('/', function(req, res) {
     res.cookie('CookieUsuario','Anonimo');
     res.send("<h1> voce esta na raiz</h1>");
 });
 
-aplicacao.get('/users', function(req, res) {
-//    var nome = req.query.nome;
-//   var endereco = req.query.endereco;
-//  var email = req.query.email;
-    
-    var idUser = req.query.id;
+// POST ACTION
+app.post('/users', bodyParser, (req, res) => {
+    const body = req.body;
+  
+    if (!body.name || !body.email || !body.address) {
+        return res.status(400).json({
+            error: 'missing information',
+        });
+    }
+  
+    const user = {
+        id: users.length + 1,
+        name: req.body.name,
+        address: req.body.address,
+        email: req.body.email,
+    };
 
-    for (let i = 0 ; i < usuario.length; i++) {
-        //console.log(usuario[i]);
-        if (usuario[i].id == idUser){
-            
-            console.log("id do usuario é ", +usuario[i].id);
-            console.log(usuario[i].nome);
-            console.log(usuario[i].endereco);
-            console.log(usuario[i].email);
-            
-    
-        } 
-        
-        if (idUser == undefined){
-            console.log("id do usuario é ", +usuario[i].id);
-            console.log(usuario[i].nome);
-            console.log(usuario[i].endereco);
-            console.log(usuario[i].email);
-        
-            
+    users = [
+        ...users,
+        user
+    ]
+
+    console.log("usuario adicionado", user);
+    res.status(201).send("user created");
+});
+
+// GET ACTION   
+app.get('/users', function(req, res) {
+    console.log("usuarios cadastrados", users);
+    res.status(200).json(users);
+})
+
+// SHOW ACTION
+app.get('/users/:id', function(req, res) {
+    let userId = req.params.id;
+
+    if (users.length && !users.map(user => user.id).includes(parseInt(userId))) {
+        return res.status(400).json({
+            error: 'user not found',
+        });
+    }
+
+    const user = users.find(user => user.id === parseInt(userId));
+
+    console.log("usuario encontrado", user);
+    res.status(200).json(user);
+});
+
+// DELETE ACTION
+app.delete('/users/:id', function(req, res) {
+    let userId = req.params.id;
+
+    if (users.length && !users.map(user => user.id).includes(parseInt(userId))) {
+        return res.status(400).json({
+            error: 'user not found',
+        });
+    }
+
+    users = users.filter(user => user.id !== parseInt(userId));
+
+    console.log("usuario removido", users);
+    res.status(200).json(users);
+});
+
+// PATCH ACTION
+app.patch('/users/:id', bodyParser, (req, res) => {
+    const body = req.body;
+    const userId = req.params.id;
+  
+    if (!body.name && !body.email && !body.address) {
+        return res.status(400).json({
+            error: 'missing information',
+        });
+    }
+  
+    users = users.length && users.map(user => {
+        if (user.id === parseInt(userId)) {
+            return {
+                ...user,
+                name: body?.name || user.name,
+                email: body?.email || user.email,
+                address: body?.address || user.address
+            }
+        } else {
+            return {
+                ...user
+            }
         }
-        
-    }
-//usuario.find(i = i.id == idUser);  
-//(months.find(i => i.name==="January") != {}) ? console.log("January month found") : console.log("Not found");  
+    })
 
-});
-
-//aplicacao.get('/clientes', function(req, res) {
-    
-//http://localhost:3000/users?nome=kaique&email=kaique@gmail.com
-//  var nomeUsuario = req.query.nome;
-// var emailUsuario = req.query.email;
-// var idUsuario = req.query.id;
-//var generoUsuario = req.query.genero;
-// res.send("<h1> Olá "+nomeUsuario+", tudo bem? </h1> <b> Seu email é "+emailUsuario+", ID = "+idUsuario+" </b>");
-    
-
-
-
-aplicacao.post('/users/:id/:nome/:endereco/:email', function(req, res) {
-    var id = req.params ['id'];
-    var nome = req.params ['nome'];
-    var endereco = req.params ['endereco'];
-    var email = req.params ['email'];
-    
-    
-    usuario.push({"id":id,"nome":nome,"endereco":endereco, "email":email});
-    console.log(JSON.stringify(usuario));
-    res.send("<h1>Resultado:" +id+", "+nome+" , "+endereco+", "+email+".</h1>");
-
-    
-
+    console.log("usuario alterado", users.find(user => user.id === parseInt(userId)));
+    res.status(200).json(users.find(user => user.id === parseInt(userId)));
 });
 
 
 
-aplicacao.delete('/users', function(req, res) {
-        var idUser = req.query.id;
-
-
-    for (let i = 0 ; i < usuario.length; i++) {
-        //console.log(usuario[i]);
-        if (usuario[i].id == idUser){
-            usuario.splice(usuario[i] , 0);
-            console.log("deletado");
-            
-         
-    
-        } 
-       
-        
-    }
-//usuario.find(i = i.id == idUser);  
-//(months.find(i => i.name==="January") != {}) ? console.log("January month found") : console.log("Not found");  
-
-});
-
-
-
-
-
-aplicacao.listen(3000, function() {
+app.listen(3000, function() {
     console.log("Estou funcionando");
    
 });
-
-
-
